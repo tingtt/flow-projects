@@ -1,0 +1,200 @@
+openapi: 3.0.0
+
+info:
+  description: |
+    You can find out more about Swagger at
+    [http://swagger.io](http://swagger.io) or on
+    [irc.freenode.net, #swagger](http://swagger.io/irc/).
+  version: "2.0.0"
+  title: "flow API: projects"
+  license:
+    name: Apache 2.0
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+
+security:
+  - cookieAuth: []
+
+tags: []
+
+paths:
+  /:
+    post:
+      requestBody:
+        $ref: "#/components/requestBodies/CreateProject"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        400:
+          description: Invalid request
+        415:
+          description: Unsupported media type
+        422:
+          description: Unprocessable entity
+        500:
+          description: Internal server error
+
+    get:
+      parameters:
+        - $ref: "#/components/parameters/show_hidden"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+        204:
+          description: No content
+        500:
+          description: Internal server error
+
+  /{id}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateProject"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        400:
+          description: Invalid request
+        404:
+          description: Not found
+        415:
+          description: Unsupported media type
+        422:
+          description: Unprocessable entity
+        500:
+          description: Internal server error
+
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/id"
+      responses:
+        204:
+          description: Deleted
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: TOKEN
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        theme_color:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: 42a5f5
+        parent_id:
+          type: integer
+        pinned:
+          type: boolean
+          default: false
+        order:
+          type: integer
+        hidden:
+          type: boolean
+          default: false
+
+    CreateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        theme_color:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: 42a5f5
+        parent_id:
+          type: integer
+        pinned:
+          type: boolean
+        order:
+          type: integer
+      required:
+        - name
+
+    UpdateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        theme_color:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: 42a5f5
+        parent_id:
+          type: integer
+        pinned:
+          type: boolean
+        order:
+          type: integer
+        hidden:
+          type: boolean
+
+  requestBodies:
+    CreateProject:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateProjectBody"
+
+    UpdateProject:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UpdateProjectBody"
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    show_hidden:
+      name: show_hidden
+      in: query
+      schema:
+        type: boolean
+        default: false
