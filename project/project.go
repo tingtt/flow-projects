@@ -144,6 +144,19 @@ func Update(user_id uint64, id uint64, new Patch) (p Project, usedName bool, not
 		return Project{}, false, true, nil
 	}
 
+	// Check deplicate name
+	if new.Name != nil {
+		named, notFound, err := GetByName(user_id, *new.Name)
+		if err != nil {
+			return Project{}, false, false, err
+		}
+
+		if !notFound && named.Id != id {
+			// Duplicated name
+			return Project{}, true, false, nil
+		}
+	}
+
 	// Set no update values
 	if new.Name == nil {
 		new.Name = &old.Name
