@@ -227,13 +227,17 @@ func GetList(user_id uint64, show_hidden bool) (projects []Project, err error) {
 	}
 	defer db.Close()
 
-	stmtOut, err := db.Prepare("SELECT id, name, theme_color, parent_id, pinned, `hidden` FROM projects WHERE user_id = ? AND `hidden` = false AND `hidden` = ?")
+	queryStr := "SELECT id, name, theme_color, parent_id, pinned, `hidden` FROM projects WHERE user_id = ?"
+	if !show_hidden {
+		queryStr += " AND `hidden` = false"
+	}
+	stmtOut, err := db.Prepare(queryStr)
 	if err != nil {
 		return
 	}
 	defer stmtOut.Close()
 
-	rows, err := stmtOut.Query(user_id, show_hidden)
+	rows, err := stmtOut.Query(user_id)
 	if err != nil {
 		return
 	}
