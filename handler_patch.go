@@ -65,8 +65,8 @@ func patch(c echo.Context) error {
 	}
 	if usedName {
 		// 409: Conflict
-		c.Logger().Debug(fmt.Sprintf("project `%s` already exist", p.Name))
-		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project `%s` already exist", p.Name)}, "	")
+		c.Logger().Debug(fmt.Sprintf("project `%s` already exist", *patch.Name))
+		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project `%s` already exist", *patch.Name)}, "	")
 	}
 
 	// 200: Success
