@@ -10,7 +10,7 @@ import (
 )
 
 type QueryParam struct {
-	ShowHidden bool `query:"show_hidden" validate:"omitempty,boolean"`
+	ShowHidden bool `query:"show_hidden" validate:"omitempty"`
 }
 
 func get(c echo.Context) error {
