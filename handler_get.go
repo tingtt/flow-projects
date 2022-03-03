@@ -45,5 +45,8 @@ func get(c echo.Context) error {
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
 
+	if projects == nil {
+		return c.JSONPretty(http.StatusOK, []interface{}{}, "	")
+	}
 	return c.JSONPretty(http.StatusOK, projects, "	")
 }
