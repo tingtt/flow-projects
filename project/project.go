@@ -17,15 +17,15 @@ type Post struct {
 	Name       string `json:"name" validate:"required"`
 	ThemeColor string `json:"theme_color" validate:"required,hexcolor"`
 	ParentId   uint64 `json:"parent_id" validate:"omitempty,number"`
-	Pinned     bool   `json:"pinned" validate:"omitempty,boolean"`
+	Pinned     bool   `json:"pinned" validate:"omitempty"`
 }
 
 type Patch struct {
 	Name       *string `json:"name" validate:"omitempty"`
 	ThemeColor *string `json:"theme_color" validate:"omitempty,hexcolor"`
 	ParentId   *uint64 `json:"parent_id" validate:"omitempty,number"`
-	Pinned     *bool   `json:"pinned" validate:"omitempty,boolean"`
-	Hidden     *bool   `json:"hidden" validate:"omitempty,boolean"`
+	Pinned     *bool   `json:"pinned" validate:"omitempty"`
+	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
 
 func Get(user_id uint64, id uint64) (u Project, notFound bool, err error) {
