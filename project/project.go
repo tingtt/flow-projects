@@ -126,17 +126,17 @@ func GetByName(user_id uint64, name string) (p Project, notFound bool, err error
 	return
 }
 
-func Insert(user_id uint64, post Post) (p Project, usedName bool, err error) {
-	// Check used name
-	_, notFound, err := GetByName(user_id, post.Name)
-	if err != nil {
-		return Project{}, false, err
+func Insert(user_id uint64, post Post) (p Project, invalidParentId bool, err error) {
+	// Check parent id
+	if post.ParentId != nil {
+		_, notFound, err := Get(user_id, *post.ParentId)
+		if err != nil {
+			return Project{}, false, err
+		}
+		if notFound {
+			return Project{}, true, nil
+		}
 	}
-	if !notFound {
-		return Project{}, true, nil
-	}
-
-	// TODO: Check parent id
 
 	// Insert DB
 	db, err := mysql.Open()
@@ -262,6 +262,8 @@ func GetList(user_id uint64, show_hidden bool) (projects []Project, err error) {
 		return
 	}
 	defer db.Close()
+
+	// TODO: 子をネスト表示
 
 	queryStr := "SELECT id, name, theme_color, parent_id, pinned, `hidden` FROM projects WHERE user_id = ?"
 	if !show_hidden {
