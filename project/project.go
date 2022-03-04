@@ -30,7 +30,7 @@ type Patch struct {
 	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
 
-func Get(user_id uint64, id uint64) (p Project, notFound bool, err error) {
+func Get(userId uint64, id uint64) (p Project, notFound bool, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return Project{}, false, err
@@ -43,7 +43,7 @@ func Get(user_id uint64, id uint64) (p Project, notFound bool, err error) {
 	}
 	defer stmtOut.Close()
 
-	rows, err := stmtOut.Query(user_id, id)
+	rows, err := stmtOut.Query(userId, id)
 	if err != nil {
 		return Project{}, false, err
 	}
@@ -78,7 +78,7 @@ func Get(user_id uint64, id uint64) (p Project, notFound bool, err error) {
 	return
 }
 
-func GetByName(user_id uint64, name string) (p Project, notFound bool, err error) {
+func GetByName(userId uint64, name string) (p Project, notFound bool, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return Project{}, false, err
@@ -91,7 +91,7 @@ func GetByName(user_id uint64, name string) (p Project, notFound bool, err error
 	}
 	defer stmtOut.Close()
 
-	rows, err := stmtOut.Query(user_id, name)
+	rows, err := stmtOut.Query(userId, name)
 	if err != nil {
 		return Project{}, false, err
 	}
@@ -126,10 +126,10 @@ func GetByName(user_id uint64, name string) (p Project, notFound bool, err error
 	return
 }
 
-func Insert(user_id uint64, post Post) (p Project, invalidParentId bool, err error) {
+func Insert(userId uint64, post Post) (p Project, invalidParentId bool, err error) {
 	// Check parent id
 	if post.ParentId != nil {
-		_, notFound, err := Get(user_id, *post.ParentId)
+		_, notFound, err := Get(userId, *post.ParentId)
 		if err != nil {
 			return Project{}, false, err
 		}
@@ -149,7 +149,7 @@ func Insert(user_id uint64, post Post) (p Project, invalidParentId bool, err err
 		return Project{}, false, err
 	}
 	defer stmtIns.Close()
-	result, err := stmtIns.Exec(user_id, post.Name, post.ThemeColor, post.ParentId, post.Pinned, post.Hidden)
+	result, err := stmtIns.Exec(userId, post.Name, post.ThemeColor, post.ParentId, post.Pinned, post.Hidden)
 	if err != nil {
 		return Project{}, false, err
 	}
@@ -170,9 +170,9 @@ func Insert(user_id uint64, post Post) (p Project, invalidParentId bool, err err
 	return
 }
 
-func Update(user_id uint64, id uint64, new Patch) (_ Project, usedName bool, notFound bool, err error) {
+func Update(userId uint64, id uint64, new Patch) (_ Project, usedName bool, notFound bool, err error) {
 	// Get old
-	old, notFound, err := Get(user_id, id)
+	old, notFound, err := Get(userId, id)
 	if err != nil {
 		return Project{}, false, false, err
 	}
@@ -182,7 +182,7 @@ func Update(user_id uint64, id uint64, new Patch) (_ Project, usedName bool, not
 
 	// Check deplicate name
 	if new.Name != nil {
-		named, notFound, err := GetByName(user_id, *new.Name)
+		named, notFound, err := GetByName(userId, *new.Name)
 		if err != nil {
 			return Project{}, false, false, err
 		}
@@ -221,7 +221,7 @@ func Update(user_id uint64, id uint64, new Patch) (_ Project, usedName bool, not
 		return Project{}, false, false, err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(new.Name, new.ThemeColor, new.ParentId, new.Pinned, new.Hidden, user_id, id)
+	_, err = stmtIns.Exec(new.Name, new.ThemeColor, new.ParentId, new.Pinned, new.Hidden, userId, id)
 	if err != nil {
 		return Project{}, false, false, err
 	}
@@ -229,7 +229,7 @@ func Update(user_id uint64, id uint64, new Patch) (_ Project, usedName bool, not
 	return Project{id, *new.Name, *new.ThemeColor, new.ParentId, *new.Pinned, *new.Hidden}, false, false, nil
 }
 
-func Delete(user_id uint64, id uint64) (notFound bool, err error) {
+func Delete(userId uint64, id uint64) (notFound bool, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return false, err
@@ -240,7 +240,7 @@ func Delete(user_id uint64, id uint64) (notFound bool, err error) {
 		return false, err
 	}
 	defer stmtIns.Close()
-	result, err := stmtIns.Exec(user_id, id)
+	result, err := stmtIns.Exec(userId, id)
 	if err != nil {
 		return false, err
 	}
@@ -256,7 +256,7 @@ func Delete(user_id uint64, id uint64) (notFound bool, err error) {
 	return false, nil
 }
 
-func GetList(user_id uint64, show_hidden bool) (projects []Project, err error) {
+func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return
@@ -275,7 +275,7 @@ func GetList(user_id uint64, show_hidden bool) (projects []Project, err error) {
 	}
 	defer stmtOut.Close()
 
-	rows, err := stmtOut.Query(user_id)
+	rows, err := stmtOut.Query(userId)
 	if err != nil {
 		return
 	}
