@@ -1,23 +1,25 @@
 package project
 
 import (
+	"database/sql"
 	"flow-projects/mysql"
 )
 
 type Project struct {
 	Id         uint64
-	Name       string `json:"name"`
-	ThemeColor string `json:"theme_color"`
-	ParentId   uint64 `json:"parent_id"`
-	Pinned     bool   `json:"pinned"`
-	Hidden     bool   `json:"hidden"`
+	Name       string  `json:"name"`
+	ThemeColor string  `json:"theme_color"`
+	ParentId   *uint64 `json:"parent_id,omitempty"`
+	Pinned     bool    `json:"pinned"`
+	Hidden     bool    `json:"hidden"`
 }
 
 type Post struct {
-	Name       string `json:"name" validate:"required"`
-	ThemeColor string `json:"theme_color" validate:"required,hexcolor"`
-	ParentId   uint64 `json:"parent_id" validate:"omitempty,number"`
-	Pinned     bool   `json:"pinned" validate:"omitempty"`
+	Name       string  `json:"name" validate:"required"`
+	ThemeColor string  `json:"theme_color" validate:"required,hexcolor"`
+	ParentId   *uint64 `json:"parent_id" validate:"omitempty,number"`
+	Pinned     bool    `json:"pinned" validate:"omitempty"`
+	Hidden     bool    `json:"hidden" validate:"omitempty"`
 }
 
 type Patch struct {
@@ -28,7 +30,7 @@ type Patch struct {
 	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
 
-func Get(user_id uint64, id uint64) (u Project, notFound bool, err error) {
+func Get(user_id uint64, id uint64) (p Project, notFound bool, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return Project{}, false, err
@@ -46,26 +48,37 @@ func Get(user_id uint64, id uint64) (u Project, notFound bool, err error) {
 		return Project{}, false, err
 	}
 
+	// TODO: uint64に対応
 	var (
-		name        string
-		theme_color string
-		parent_id   uint64
-		pinned      bool
-		hidden      bool
+		name       string
+		themeColor string
+		parentId   sql.NullInt64
+		pinned     bool
+		hidden     bool
 	)
 	if !rows.Next() {
 		// Not found
 		return Project{}, true, nil
 	}
-	err = rows.Scan(&name, &theme_color, &parent_id, &pinned, &hidden)
+	err = rows.Scan(&name, &themeColor, &parentId, &pinned, &hidden)
 	if err != nil {
 		return Project{}, false, err
 	}
 
-	return Project{id, name, theme_color, parent_id, pinned, hidden}, false, nil
+	p.Id = id
+	p.Name = name
+	p.ThemeColor = themeColor
+	if parentId.Valid {
+		parentIdTmp := uint64(parentId.Int64)
+		p.ParentId = &parentIdTmp
+	}
+	p.Pinned = pinned
+	p.Hidden = hidden
+
+	return
 }
 
-func GetByName(user_id uint64, name string) (u Project, notFound bool, err error) {
+func GetByName(user_id uint64, name string) (p Project, notFound bool, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return Project{}, false, err
@@ -83,26 +96,38 @@ func GetByName(user_id uint64, name string) (u Project, notFound bool, err error
 		return Project{}, false, err
 	}
 
+	// TODO: uint64に対応
 	var (
-		id          uint64
-		theme_color string
-		parent_id   uint64
-		pinned      bool
-		hidden      bool
+		id         uint64
+		themeColor string
+		parentId   sql.NullInt64
+		pinned     bool
+		hidden     bool
 	)
 	if !rows.Next() {
 		// Not found
 		return Project{}, true, nil
 	}
-	err = rows.Scan(&id, &theme_color, &parent_id, &pinned, &hidden)
+	err = rows.Scan(&id, &themeColor, &parentId, &pinned, &hidden)
 	if err != nil {
 		return Project{}, false, err
 	}
 
-	return Project{id, name, theme_color, parent_id, pinned, hidden}, false, nil
+	p.Name = name
+	p.Id = id
+	p.ThemeColor = themeColor
+	if parentId.Valid {
+		parentIdTmp := uint64(parentId.Int64)
+		p.ParentId = &parentIdTmp
+	}
+	p.Pinned = pinned
+	p.Hidden = hidden
+
+	return
 }
 
 func Insert(user_id uint64, post Post) (p Project, usedName bool, err error) {
+	// Check used name
 	_, notFound, err := GetByName(user_id, post.Name)
 	if err != nil {
 		return Project{}, false, err
@@ -111,18 +136,20 @@ func Insert(user_id uint64, post Post) (p Project, usedName bool, err error) {
 		return Project{}, true, nil
 	}
 
+	// TODO: Check parent id
+
 	// Insert DB
 	db, err := mysql.Open()
 	if err != nil {
 		return Project{}, false, err
 	}
 	defer db.Close()
-	stmtIns, err := db.Prepare("INSERT INTO projects (user_id, name, theme_color, parent_id, pinned) VALUES (?, ?, ?, ?, ?)")
+	stmtIns, err := db.Prepare("INSERT INTO projects (user_id, name, theme_color, parent_id, pinned, `hidden`) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return Project{}, false, err
 	}
 	defer stmtIns.Close()
-	result, err := stmtIns.Exec(user_id, post.Name, post.ThemeColor, post.ParentId, post.Pinned)
+	result, err := stmtIns.Exec(user_id, post.Name, post.ThemeColor, post.ParentId, post.Pinned, post.Hidden)
 	if err != nil {
 		return Project{}, false, err
 	}
@@ -131,10 +158,19 @@ func Insert(user_id uint64, post Post) (p Project, usedName bool, err error) {
 		return Project{}, false, err
 	}
 
-	return Project{uint64(id), post.Name, post.ThemeColor, post.ParentId, post.Pinned, false}, false, nil
+	p.Id = uint64(id)
+	p.Name = post.Name
+	p.ThemeColor = post.ThemeColor
+	if post.ParentId != nil {
+		p.ParentId = post.ParentId
+	}
+	p.Pinned = post.Pinned
+	p.Hidden = post.Hidden
+
+	return
 }
 
-func Update(user_id uint64, id uint64, new Patch) (p Project, usedName bool, notFound bool, err error) {
+func Update(user_id uint64, id uint64, new Patch) (_ Project, usedName bool, notFound bool, err error) {
 	// Get old
 	old, notFound, err := Get(user_id, id)
 	if err != nil {
@@ -165,7 +201,7 @@ func Update(user_id uint64, id uint64, new Patch) (p Project, usedName bool, not
 		new.ThemeColor = &old.ThemeColor
 	}
 	if new.ParentId == nil {
-		new.ParentId = &old.ParentId
+		new.ParentId = old.ParentId
 	}
 	if new.Pinned == nil {
 		new.Pinned = &old.Pinned
@@ -190,7 +226,7 @@ func Update(user_id uint64, id uint64, new Patch) (p Project, usedName bool, not
 		return Project{}, false, false, err
 	}
 
-	return Project{id, *new.Name, *new.ThemeColor, *new.ParentId, *new.Pinned, *new.Hidden}, false, false, nil
+	return Project{id, *new.Name, *new.ThemeColor, new.ParentId, *new.Pinned, *new.Hidden}, false, false, nil
 }
 
 func Delete(user_id uint64, id uint64) (notFound bool, err error) {
@@ -243,21 +279,27 @@ func GetList(user_id uint64, show_hidden bool) (projects []Project, err error) {
 	}
 
 	for rows.Next() {
+		// TODO: uint64に対応
 		var (
-			id          uint64
-			name        string
-			theme_color string
-			parent_id   uint64
-			pinned      bool
-			hidden      bool
+			id         uint64
+			name       string
+			themeColor string
+			parentId   sql.NullInt64
+			pinned     bool
+			hidden     bool
 		)
-
-		err = rows.Scan(&id, &name, &theme_color, &parent_id, &pinned, &hidden)
+		err = rows.Scan(&id, &name, &themeColor, &parentId, &pinned, &hidden)
 		if err != nil {
 			return
 		}
 
-		projects = append(projects, Project{id, name, theme_color, parent_id, pinned, hidden})
+		p := Project{Id: id, Name: name, ThemeColor: themeColor, Pinned: pinned, Hidden: hidden}
+		if parentId.Valid {
+			parentIdTmp := uint64(parentId.Int64)
+			p.ParentId = &parentIdTmp
+		}
+
+		projects = append(projects, p)
 	}
 
 	return
