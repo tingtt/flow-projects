@@ -17,7 +17,7 @@ type Project struct {
 type Post struct {
 	Name       string  `json:"name" validate:"required"`
 	ThemeColor string  `json:"theme_color" validate:"required,hexcolor"`
-	ParentId   *uint64 `json:"parent_id" validate:"omitempty,number"`
+	ParentId   *uint64 `json:"parent_id" validate:"omitempty,gte=1"`
 	Pinned     bool    `json:"pinned" validate:"omitempty"`
 	Hidden     bool    `json:"hidden" validate:"omitempty"`
 }
@@ -25,7 +25,7 @@ type Post struct {
 type Patch struct {
 	Name       *string `json:"name" validate:"omitempty"`
 	ThemeColor *string `json:"theme_color" validate:"omitempty,hexcolor"`
-	ParentId   *uint64 `json:"parent_id" validate:"omitempty,number"`
+	ParentId   *uint64 `json:"parent_id" validate:"omitempty,gte=1"`
 	Pinned     *bool   `json:"pinned" validate:"omitempty"`
 	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
