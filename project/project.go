@@ -126,36 +126,41 @@ func GetByName(userId uint64, name string) (p Project, notFound bool, err error)
 	return
 }
 
-func Insert(userId uint64, post Post) (p Project, invalidParentId bool, err error) {
+func Insert(userId uint64, post Post) (p Project, parentNotFound bool, parentHasParent bool, err error) {
 	// Check parent id
 	if post.ParentId != nil {
-		_, notFound, err := Get(userId, *post.ParentId)
+		var parent Project
+		parent, parentNotFound, err = Get(userId, *post.ParentId)
 		if err != nil {
-			return Project{}, false, err
+			return
 		}
-		if notFound {
-			return Project{}, true, nil
+		if parentNotFound {
+			return
+		}
+		if parent.ParentId != nil {
+			parentHasParent = true
+			return
 		}
 	}
 
 	// Insert DB
 	db, err := mysql.Open()
 	if err != nil {
-		return Project{}, false, err
+		return
 	}
 	defer db.Close()
 	stmtIns, err := db.Prepare("INSERT INTO projects (user_id, name, theme_color, parent_id, pinned, `hidden`) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		return Project{}, false, err
+		return
 	}
 	defer stmtIns.Close()
 	result, err := stmtIns.Exec(userId, post.Name, post.ThemeColor, post.ParentId, post.Pinned, post.Hidden)
 	if err != nil {
-		return Project{}, false, err
+		return
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return Project{}, false, err
+		return
 	}
 
 	p.Id = uint64(id)

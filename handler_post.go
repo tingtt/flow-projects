@@ -41,16 +41,21 @@ func post(c echo.Context) error {
 		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
 	}
 
-	p, invalidParentId, err := project.Insert(userId, *post)
+	p, parentNotFound, parentHasParent, err := project.Insert(userId, *post)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Debug(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
-	if invalidParentId && post.ParentId != nil {
+	if parentNotFound && post.ParentId != nil {
 		// 409: Conflict
 		c.Logger().Debug(fmt.Sprintf("project id: %d does not exists", *post.ParentId))
 		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project id: %d does not exists", *post.ParentId)}, "	")
+	}
+	if parentHasParent && post.ParentId != nil {
+		// 409: Conflict
+		c.Logger().Debug("cannot create child's child project")
+		return c.JSONPretty(http.StatusConflict, map[string]string{"message": "cannot create child's child project"}, "	")
 	}
 
 	// 200: Success
