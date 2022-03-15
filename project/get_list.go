@@ -12,12 +12,11 @@ func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
 	}
 	defer db.Close()
 
-	// TODO: 子をネスト表示
-
 	queryStr := "SELECT id, name, theme_color, parent_id, pinned, `hidden` FROM projects WHERE user_id = ?"
 	if !show_hidden {
 		queryStr += " AND `hidden` = false"
 	}
+	queryStr += " ORDER BY pinned DESC"
 	stmtOut, err := db.Prepare(queryStr)
 	if err != nil {
 		return
