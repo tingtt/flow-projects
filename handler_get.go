@@ -10,7 +10,8 @@ import (
 )
 
 type QueryParam struct {
-	ShowHidden bool `query:"show_hidden" validate:"omitempty"`
+	ShowHidden bool    `query:"show_hidden" validate:"omitempty"`
+	Embed      *string `query:"embed" validate:"omitempty,oneof=sub_projects"`
 }
 
 func get(c echo.Context) error {
@@ -37,8 +38,23 @@ func get(c echo.Context) error {
 		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
 	}
 
-	// Get projects
-	projects, err := project.GetList(userId, q.ShowHidden)
+	if q.Embed == nil {
+		// Get projects
+		projects, err := project.GetList(userId, q.ShowHidden)
+		if err != nil {
+			// 500: Internal server error
+			c.Logger().Debug(err)
+			return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
+		}
+
+		if projects == nil {
+			return c.JSONPretty(http.StatusOK, []interface{}{}, "	")
+		}
+		return c.JSONPretty(http.StatusOK, projects, "	")
+	}
+
+	// Get projects with sub
+	projects, err := project.GetListEmbed(userId, q.ShowHidden)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Debug(err)
