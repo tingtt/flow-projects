@@ -27,7 +27,7 @@ func post(c echo.Context) error {
 	}
 
 	// Bind request body
-	post := new(project.Post)
+	post := new(project.PostBody)
 	if err = c.Bind(post); err != nil {
 		// 400: Bad request
 		c.Logger().Debug(err)
@@ -41,7 +41,7 @@ func post(c echo.Context) error {
 		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
 	}
 
-	p, parentNotFound, parentHasParent, err := project.Insert(userId, *post)
+	p, parentNotFound, parentHasParent, err := project.Post(userId, *post)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Debug(err)

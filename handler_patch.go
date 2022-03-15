@@ -38,7 +38,7 @@ func patch(c echo.Context) error {
 	}
 
 	// Bind request body
-	patch := new(project.Patch)
+	patch := new(project.PatchBody)
 	if err = c.Bind(patch); err != nil {
 		// 400: Bad request
 		c.Logger().Debug(err)
@@ -52,7 +52,7 @@ func patch(c echo.Context) error {
 		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
 	}
 
-	p, usedName, notFound, err := project.Update(userId, id, *patch)
+	p, usedName, notFound, err := project.Patch(userId, id, *patch)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Debug(err)

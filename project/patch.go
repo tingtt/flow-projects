@@ -4,7 +4,7 @@ import (
 	"flow-projects/mysql"
 )
 
-type Patch struct {
+type PatchBody struct {
 	Name       *string `json:"name" validate:"omitempty"`
 	ThemeColor *string `json:"theme_color" validate:"omitempty,hexcolor"`
 	ParentId   *uint64 `json:"parent_id" validate:"omitempty,gte=1"`
@@ -12,7 +12,7 @@ type Patch struct {
 	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
 
-func Update(userId uint64, id uint64, new Patch) (_ Project, usedName bool, notFound bool, err error) {
+func Patch(userId uint64, id uint64, new PatchBody) (_ Project, usedName bool, notFound bool, err error) {
 	// Get old
 	old, notFound, err := Get(userId, id)
 	if err != nil {

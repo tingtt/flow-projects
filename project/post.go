@@ -2,7 +2,7 @@ package project
 
 import "flow-projects/mysql"
 
-type Post struct {
+type PostBody struct {
 	Name       string  `json:"name" validate:"required"`
 	ThemeColor string  `json:"theme_color" validate:"required,hexcolor"`
 	ParentId   *uint64 `json:"parent_id" validate:"omitempty,gte=1"`
@@ -10,7 +10,7 @@ type Post struct {
 	Hidden     bool    `json:"hidden" validate:"omitempty"`
 }
 
-func Insert(userId uint64, post Post) (p Project, parentNotFound bool, parentHasParent bool, err error) {
+func Post(userId uint64, post PostBody) (p Project, parentNotFound bool, parentHasParent bool, err error) {
 	// Check parent id
 	if post.ParentId != nil {
 		var parent Project
