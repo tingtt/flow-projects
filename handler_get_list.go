@@ -14,7 +14,7 @@ type QueryParam struct {
 	Embed      *string `query:"embed" validate:"omitempty,oneof=sub_projects"`
 }
 
-func get(c echo.Context) error {
+func getList(c echo.Context) error {
 	// Check token
 	u := c.Get("user").(*jwtGo.Token)
 	userId, err := jwt.CheckToken(*jwtIssuer, u)
@@ -33,9 +33,9 @@ func get(c echo.Context) error {
 
 	// Validate query
 	if err = c.Validate(q); err != nil {
-		// 422: Unprocessable entity
+		// 400: Bad request
 		c.Logger().Debug(err)
-		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
+		return c.JSONPretty(http.StatusBadRequest, map[string]string{"message": err.Error()}, "	")
 	}
 
 	if q.Embed == nil {
