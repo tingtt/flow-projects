@@ -2,6 +2,7 @@ package project
 
 import (
 	"flow-projects/mysql"
+	"strings"
 )
 
 type PatchBody struct {
@@ -12,9 +13,9 @@ type PatchBody struct {
 	Hidden     *bool   `json:"hidden" validate:"omitempty"`
 }
 
-func Patch(userId uint64, id uint64, new PatchBody) (_ Project, usedName bool, notFound bool, err error) {
+func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, notFound bool, err error) {
 	// Get old
-	old, notFound, err := Get(userId, id)
+	p, notFound, err = Get(userId, id)
 	if err != nil {
 		return Project{}, false, false, err
 	}
@@ -22,22 +23,38 @@ func Patch(userId uint64, id uint64, new PatchBody) (_ Project, usedName bool, n
 		return Project{}, false, true, nil
 	}
 
+	// Generate query
+	queryStr := "UPDATE projects SET"
+	var queryParams []interface{}
 	// Set no update values
-	if new.Name == nil {
-		new.Name = &old.Name
+	if new.Name != nil {
+		queryStr += " name = ?,"
+		queryParams = append(queryParams, new.Name)
+		p.Name = *new.Name
 	}
-	if new.ThemeColor == nil {
-		new.ThemeColor = &old.ThemeColor
+	if new.ThemeColor != nil {
+		queryStr += " theme_color = ?,"
+		queryParams = append(queryParams, new.ThemeColor)
+		p.ThemeColor = *new.ThemeColor
 	}
-	if new.ParentId == nil {
-		new.ParentId = old.ParentId
+	if new.ParentId != nil {
+		queryStr += " parent_id = ?,"
+		queryParams = append(queryParams, new.ParentId)
+		p.ParentId = new.ParentId
 	}
-	if new.Pinned == nil {
-		new.Pinned = &old.Pinned
+	if new.Pinned != nil {
+		queryStr += " pinned = ?,"
+		queryParams = append(queryParams, new.Pinned)
+		p.Pinned = *new.Pinned
 	}
-	if new.Hidden == nil {
-		new.Hidden = &old.Hidden
+	if new.Hidden != nil {
+		queryStr += " `hidden` = ?"
+		queryParams = append(queryParams, new.Hidden)
+		p.Hidden = *new.Hidden
 	}
+	queryStr = strings.TrimRight(queryStr, ",")
+	queryStr += " WHERE user_id = ? AND id = ?"
+	queryParams = append(queryParams, userId, id)
 
 	// Update row
 	db, err := mysql.Open()
@@ -45,15 +62,15 @@ func Patch(userId uint64, id uint64, new PatchBody) (_ Project, usedName bool, n
 		return Project{}, false, false, err
 	}
 	defer db.Close()
-	stmtIns, err := db.Prepare("UPDATE projects SET name = ?, theme_color = ?, parent_id = ?, pinned = ?, `hidden` = ? WHERE user_id = ? AND id = ?")
+	stmtIns, err := db.Prepare(queryStr)
 	if err != nil {
 		return Project{}, false, false, err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(new.Name, new.ThemeColor, new.ParentId, new.Pinned, new.Hidden, userId, id)
+	_, err = stmtIns.Exec(queryParams...)
 	if err != nil {
 		return Project{}, false, false, err
 	}
 
-	return Project{id, *new.Name, *new.ThemeColor, new.ParentId, *new.Pinned, *new.Hidden}, false, false, nil
+	return
 }
