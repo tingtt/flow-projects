@@ -1,7 +1,6 @@
 package project
 
 import (
-	"database/sql"
 	"flow-projects/mysql"
 	"sort"
 )
@@ -62,31 +61,22 @@ func GetListEmbed(userId uint64, show_hidden bool) (projects []ProjectSubEmbed, 
 	// Emdedding sub projects
 	var tmpParent ProjectSubEmbed
 	for rows.Next() {
-		// TODO: uint64に対応
-		var (
-			id         uint64
-			name       string
-			themeColor string
-			parentId   sql.NullInt64
-			pinned     bool
-			hidden     bool
-		)
-		err = rows.Scan(&id, &name, &themeColor, &parentId, &pinned, &hidden)
+		p := Project{}
+		err = rows.Scan(&p.Id, &p.Name, &p.ThemeColor, &p.ParentId, &p.Pinned, &p.Hidden)
 		if err != nil {
 			return
 		}
 
-		if parentId.Valid {
+		if p.ParentId != nil {
 			// Embedding sub project
-			tmpParentId := uint64(parentId.Int64)
-			tmpParent.SubProjects = append(tmpParent.SubProjects, Project{id, name, themeColor, &tmpParentId, pinned, hidden})
+			tmpParent.SubProjects = append(tmpParent.SubProjects, p)
 		} else {
 			if tmpParent.Id != 0 {
 				// Finish embedding
 				projects = append(projects, tmpParent)
 			}
 			// Start embedding to next parent
-			tmpParent = ProjectSubEmbed{id, name, themeColor, pinned, hidden, []Project{}}
+			tmpParent = ProjectSubEmbed{p.Id, p.Name, p.ThemeColor, p.Pinned, p.Hidden, []Project{}}
 		}
 	}
 	projects = append(projects, tmpParent)

@@ -17,10 +17,10 @@ func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, n
 	// Get old
 	p, notFound, err = Get(userId, id)
 	if err != nil {
-		return Project{}, false, false, err
+		return
 	}
 	if notFound {
-		return Project{}, false, true, nil
+		return
 	}
 
 	// Generate query
@@ -59,17 +59,17 @@ func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, n
 	// Update row
 	db, err := mysql.Open()
 	if err != nil {
-		return Project{}, false, false, err
+		return
 	}
 	defer db.Close()
 	stmtIns, err := db.Prepare(queryStr)
 	if err != nil {
-		return Project{}, false, false, err
+		return
 	}
 	defer stmtIns.Close()
 	_, err = stmtIns.Exec(queryParams...)
 	if err != nil {
-		return Project{}, false, false, err
+		return
 	}
 
 	return
