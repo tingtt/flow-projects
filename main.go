@@ -76,6 +76,7 @@ func main() {
 	// Restricted routes
 	e.GET("/", getList)
 	e.POST("/", post)
+	e.GET(":id", get)
 	e.PATCH(":id", patch)
 	e.DELETE(":id", delete)
 
