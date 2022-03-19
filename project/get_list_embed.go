@@ -2,7 +2,6 @@ package project
 
 import (
 	"flow-projects/mysql"
-	"sort"
 )
 
 type ProjectSubEmbed struct {
@@ -80,11 +79,6 @@ func GetListEmbed(userId uint64, show_hidden bool) (projects []ProjectSubEmbed, 
 		}
 	}
 	projects = append(projects, tmpParent)
-
-	// Sort by pinned of parent projects
-	sort.Slice(projects, func(i, j int) bool {
-		return !projects[j].Pinned && projects[i].Pinned
-	})
 
 	return
 }
