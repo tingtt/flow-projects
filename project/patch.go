@@ -1,16 +1,41 @@
 package project
 
 import (
+	"encoding/json"
 	"flow-projects/mysql"
 	"strings"
 )
 
 type PatchBody struct {
-	Name       *string `json:"name" validate:"omitempty"`
-	ThemeColor *string `json:"theme_color" validate:"omitempty,hexcolor"`
-	ParentId   *uint64 `json:"parent_id" validate:"omitempty,gte=1"`
-	Pinned     *bool   `json:"pinned" validate:"omitempty"`
-	Hidden     *bool   `json:"hidden" validate:"omitempty"`
+	Name       *string             `json:"name" validate:"omitempty"`
+	ThemeColor *string             `json:"theme_color" validate:"omitempty,hexcolor"`
+	ParentId   PatchNullJSONUint64 `json:"parent_id" validate:"dive"`
+	Pinned     *bool               `json:"pinned" validate:"omitempty"`
+	Hidden     *bool               `json:"hidden" validate:"omitempty"`
+}
+
+type PatchNullJSONUint64 struct {
+	UInt64 **uint64 `validate:"omitempty,gte=1"`
+}
+
+func (p *PatchNullJSONUint64) UnmarshalJSON(data []byte) error {
+	// If this method was called, the value was set.
+	var valueP *uint64 = nil
+	if string(data) == "null" {
+		// key exists and value is null
+		p.UInt64 = &valueP
+		return nil
+	}
+
+	var tmp uint64
+	tmpP := &tmp
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		// invalid value type
+		return err
+	}
+	// valid value
+	p.UInt64 = &tmpP
+	return nil
 }
 
 func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, notFound bool, err error) {
@@ -37,10 +62,16 @@ func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, n
 		queryParams = append(queryParams, new.ThemeColor)
 		p.ThemeColor = *new.ThemeColor
 	}
-	if new.ParentId != nil {
-		queryStr += " parent_id = ?,"
-		queryParams = append(queryParams, new.ParentId)
-		p.ParentId = new.ParentId
+	if new.ParentId.UInt64 != nil {
+		if *new.ParentId.UInt64 != nil {
+			queryStr += " parent_id = ?,"
+			queryParams = append(queryParams, **new.ParentId.UInt64)
+			p.ParentId = *new.ParentId.UInt64
+		} else {
+			queryStr += " parent_id = ?,"
+			queryParams = append(queryParams, nil)
+			p.ParentId = nil
+		}
 	}
 	if new.Pinned != nil {
 		queryStr += " pinned = ?,"
