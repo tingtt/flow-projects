@@ -78,6 +78,9 @@ func GetListEmbed(userId uint64, show_hidden bool) (projects []ProjectSubEmbed, 
 			tmpParent = ProjectSubEmbed{p.Id, p.Name, p.ThemeColor, p.Pinned, p.Hidden, []Project{}}
 		}
 	}
+	if tmpParent.Id == 0 {
+		return
+	}
 	projects = append(projects, tmpParent)
 
 	return
