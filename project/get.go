@@ -53,6 +53,7 @@ func GetByName(userId uint64, name string) (p Project, notFound bool, err error)
 	if err != nil {
 		return
 	}
+	defer rows.Close()
 
 	if !rows.Next() {
 		// Not found

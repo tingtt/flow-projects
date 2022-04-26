@@ -56,6 +56,7 @@ func GetListEmbed(userId uint64, show_hidden bool) (projects []ProjectSubEmbed, 
 	if err != nil {
 		return
 	}
+	defer rows.Close()
 
 	// Emdedding sub projects
 	var tmpParent ProjectSubEmbed

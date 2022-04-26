@@ -26,6 +26,7 @@ func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
 	if err != nil {
 		return
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		p := Project{}
