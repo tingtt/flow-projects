@@ -41,8 +41,8 @@ services:
       - 3306
     environment:
       TZ: ${TZ:-UTC}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-flow-users}
-      MYSQL_USER: ${MYSQL_USER:-flow-users}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-flow-projects}
+      MYSQL_USER: ${MYSQL_USER:-flow-projects}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     restart: unless-stopped
