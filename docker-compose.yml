@@ -13,14 +13,14 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       PORT: ${PORT:-1323}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-flow-users}
-      MYSQL_USER: ${MYSQL_USER:-flow-users}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-flow-projects}
+      MYSQL_USER: ${MYSQL_USER:-flow-projects}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       LOG_LEVEL: ${LOG_LEVEL:-2}
       GZIP_LEVEL: ${GZIP_LEVEL:-6}
       MYSQL_HOST: ${MYSQL_HOST:-db}
       MYSQL_PORT: ${MYSQL_PORT:-3306}
-      JWT_ISSUER: ${JWT_ISSUER:-flow-users}
+      JWT_ISSUER: ${JWT_ISSUER:-flow-projects}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - db
