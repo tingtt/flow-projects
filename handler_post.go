@@ -44,12 +44,12 @@ func post(c echo.Context) error {
 	p, parentNotFound, parentHasParent, err := project.Post(userId, *post)
 	if err != nil {
 		// 500: Internal server error
-		c.Logger().Debug(err)
+		c.Logger().Error(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
 	if parentNotFound && post.ParentId != nil {
 		// 409: Conflict
-		c.Logger().Debug(fmt.Sprintf("project id: %d does not exists", *post.ParentId))
+		c.Logger().Debugf("project id: %d does not exists", *post.ParentId)
 		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project id: %d does not exists", *post.ParentId)}, "	")
 	}
 	if parentHasParent && post.ParentId != nil {

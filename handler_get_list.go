@@ -43,7 +43,7 @@ func getList(c echo.Context) error {
 		projects, err := project.GetList(userId, q.ShowHidden)
 		if err != nil {
 			// 500: Internal server error
-			c.Logger().Debug(err)
+			c.Logger().Error(err)
 			return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 		}
 
@@ -57,7 +57,7 @@ func getList(c echo.Context) error {
 	projects, err := project.GetListEmbed(userId, q.ShowHidden)
 	if err != nil {
 		// 500: Internal server error
-		c.Logger().Debug(err)
+		c.Logger().Error(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
 

@@ -55,7 +55,7 @@ func patch(c echo.Context) error {
 	p, usedName, notFound, err := project.Patch(userId, id, *patch)
 	if err != nil {
 		// 500: Internal server error
-		c.Logger().Debug(err)
+		c.Logger().Error(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
 	if notFound {
@@ -65,7 +65,7 @@ func patch(c echo.Context) error {
 	}
 	if usedName {
 		// 409: Conflict
-		c.Logger().Debug(fmt.Sprintf("project `%s` already exist", *patch.Name))
+		c.Logger().Debugf("project `%s` already exist", *patch.Name)
 		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project `%s` already exist", *patch.Name)}, "	")
 	}
 
