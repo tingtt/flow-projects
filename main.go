@@ -91,7 +91,7 @@ func main() {
 	})
 
 	// Restricted routes
-	e.GET("/", handler.Get)
+	e.GET("/", handler.GetList)
 	e.POST("/", handler.Post)
 	e.GET(":id", handler.Get)
 	e.PATCH(":id", handler.Patch)
