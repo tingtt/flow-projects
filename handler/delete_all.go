@@ -1,44 +1,29 @@
-package main
+package handler
 
 import (
+	"flow-projects/flags"
 	"flow-projects/jwt"
 	"flow-projects/project"
 	"net/http"
-	"strconv"
 
 	jwtGo "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
-func delete(c echo.Context) error {
+func DeleteAll(c echo.Context) error {
 	// Check token
 	u := c.Get("user").(*jwtGo.Token)
-	userId, err := jwt.CheckToken(*jwtIssuer, u)
+	userId, err := jwt.CheckToken(*flags.Get().JwtIssuer, u)
 	if err != nil {
 		c.Logger().Debug(err)
 		return c.JSONPretty(http.StatusUnauthorized, map[string]string{"message": err.Error()}, "	")
 	}
 
-	// id
-	idStr := c.Param("id")
-
-	// string -> uint64
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
-		// 404: Not found
-		return echo.ErrNotFound
-	}
-
-	notFound, err := project.Delete(userId, id)
+	err = project.DeleteAll(userId)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Error(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
-	}
-	if notFound {
-		// 404: Not found
-		c.Logger().Debug("project not found")
-		return echo.ErrNotFound
 	}
 
 	// 204: No content

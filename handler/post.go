@@ -1,6 +1,7 @@
-package main
+package handler
 
 import (
+	"flow-projects/flags"
 	"flow-projects/jwt"
 	"flow-projects/project"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func post(c echo.Context) error {
+func Post(c echo.Context) error {
 	// Check `Content-Type`
 	if !strings.Contains(c.Request().Header.Get("Content-Type"), "application/json") {
 		// 415: Invalid `Content-Type`
@@ -20,7 +21,7 @@ func post(c echo.Context) error {
 
 	// Check token
 	u := c.Get("user").(*jwtGo.Token)
-	userId, err := jwt.CheckToken(*jwtIssuer, u)
+	userId, err := jwt.CheckToken(*flags.Get().JwtIssuer, u)
 	if err != nil {
 		c.Logger().Debug(err)
 		return c.JSONPretty(http.StatusUnauthorized, map[string]string{"message": err.Error()}, "	")
