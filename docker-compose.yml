@@ -22,6 +22,7 @@ services:
       MYSQL_PORT: ${MYSQL_PORT:-3306}
       JWT_ISSUER: ${JWT_ISSUER:-flow-users}
       JWT_SECRET: ${JWT_SECRET}
+    command: ${ARGS:-}
     depends_on:
       - db
     restart: unless-stopped
