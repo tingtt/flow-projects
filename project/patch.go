@@ -48,6 +48,36 @@ func Patch(userId uint64, id uint64, new PatchBody) (p Project, usedName bool, n
 		return
 	}
 
+	// Check name
+	if new.Name != nil {
+		var projects []Project
+		projects, err = GetList(userId, false, new.Name)
+		if err != nil {
+			return
+		}
+		if len(projects) != 0 && projects[0].Id != id {
+			usedName = true
+			return
+		}
+	}
+	if new.Hidden != nil && p.Hidden != *new.Hidden && !*new.Hidden {
+		// project.Hidden change to false
+		// check duplicate of project.name
+		var projects []Project
+		if new.Name != nil {
+			projects, err = GetList(userId, true, new.Name)
+		} else {
+			projects, err = GetList(userId, true, &p.Name)
+		}
+		if err != nil {
+			return
+		}
+		if len(projects) != 0 && projects[0].Id != id {
+			usedName = true
+			return
+		}
+	}
+
 	// Generate query
 	queryStr := "UPDATE projects SET"
 	var queryParams []interface{}

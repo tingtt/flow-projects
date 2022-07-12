@@ -42,21 +42,26 @@ func Post(c echo.Context) error {
 		return c.JSONPretty(http.StatusUnprocessableEntity, map[string]string{"message": err.Error()}, "	")
 	}
 
-	p, parentNotFound, parentHasParent, err := project.Post(userId, *post)
+	p, usedName, parentNotFound, parentHasParent, err := project.Post(userId, *post)
 	if err != nil {
 		// 500: Internal server error
 		c.Logger().Error(err)
 		return c.JSONPretty(http.StatusInternalServerError, map[string]string{"message": err.Error()}, "	")
 	}
+	if usedName {
+		// 400: Bad Request
+		c.Logger().Debugf("project name: %s already used", post.Name)
+		return c.JSONPretty(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("project name: %s already used", post.Name)}, "	")
+	}
 	if parentNotFound && post.ParentId != nil {
-		// 409: Conflict
+		// 400: Bad Request
 		c.Logger().Debugf("project id: %d does not exists", *post.ParentId)
-		return c.JSONPretty(http.StatusConflict, map[string]string{"message": fmt.Sprintf("project id: %d does not exists", *post.ParentId)}, "	")
+		return c.JSONPretty(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("project id: %d does not exists", *post.ParentId)}, "	")
 	}
 	if parentHasParent && post.ParentId != nil {
-		// 409: Conflict
+		// 400: Bad Request
 		c.Logger().Debug("cannot create child's child project")
-		return c.JSONPretty(http.StatusConflict, map[string]string{"message": "cannot create child's child project"}, "	")
+		return c.JSONPretty(http.StatusBadRequest, map[string]string{"message": "cannot create child's child project"}, "	")
 	}
 
 	// 200: Success

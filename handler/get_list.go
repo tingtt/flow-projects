@@ -11,6 +11,7 @@ import (
 )
 
 type QueryParam struct {
+	Name       *string `query:"name" validate:"omitempty"`
 	ShowHidden bool    `query:"show_hidden" validate:"omitempty"`
 	Embed      *string `query:"embed" validate:"omitempty,oneof=sub_projects"`
 }
@@ -41,7 +42,7 @@ func GetList(c echo.Context) error {
 
 	if q.Embed == nil {
 		// Get projects
-		projects, err := project.GetList(userId, q.ShowHidden)
+		projects, err := project.GetList(userId, q.ShowHidden, q.Name)
 		if err != nil {
 			// 500: Internal server error
 			c.Logger().Error(err)

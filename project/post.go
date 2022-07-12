@@ -10,7 +10,7 @@ type PostBody struct {
 	Hidden     bool    `json:"hidden" validate:"omitempty"`
 }
 
-func Post(userId uint64, post PostBody) (p Project, parentNotFound bool, parentHasParent bool, err error) {
+func Post(userId uint64, post PostBody) (p Project, usedName bool, parentNotFound bool, parentHasParent bool, err error) {
 	// Check parent id
 	if post.ParentId != nil {
 		var parent Project
@@ -25,6 +25,16 @@ func Post(userId uint64, post PostBody) (p Project, parentNotFound bool, parentH
 			parentHasParent = true
 			return
 		}
+	}
+
+	// Check name
+	projects, err := GetList(userId, false, &post.Name)
+	if err != nil {
+		return
+	}
+	if len(projects) != 0 {
+		usedName = true
+		return
 	}
 
 	// Insert DB

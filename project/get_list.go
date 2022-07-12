@@ -4,7 +4,7 @@ import (
 	"flow-projects/mysql"
 )
 
-func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
+func GetList(userId uint64, show_hidden bool, name *string) (projects []Project, err error) {
 	db, err := mysql.Open()
 	if err != nil {
 		return
@@ -12,8 +12,13 @@ func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
 	defer db.Close()
 
 	queryStr := "SELECT id, name, theme_color, parent_id, pinned, `hidden` FROM projects WHERE user_id = ?"
+	queryParams := []interface{}{userId}
 	if !show_hidden {
 		queryStr += " AND `hidden` = false"
+	}
+	if name != nil {
+		queryStr += " AND name = ?"
+		queryParams = append(queryParams, *name)
 	}
 	queryStr += " ORDER BY pinned DESC"
 	stmtOut, err := db.Prepare(queryStr)
@@ -22,7 +27,7 @@ func GetList(userId uint64, show_hidden bool) (projects []Project, err error) {
 	}
 	defer stmtOut.Close()
 
-	rows, err := stmtOut.Query(userId)
+	rows, err := stmtOut.Query(queryParams...)
 	if err != nil {
 		return
 	}
